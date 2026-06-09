@@ -1,7 +1,8 @@
 import Enrollment from "../models/Enrollment.js";
 import Course from "../models/Course.js";
+import User from "../models/User.js";
 
-// @desc    Enroll in a course
+// @desc    Enroll in a course (with extra details form)
 // @route   POST /api/enrollments/:courseId
 // @access  Private/Student
 export const enrollCourse = async (req, res) => {
@@ -16,12 +17,32 @@ export const enrollCourse = async (req, res) => {
     });
     if (existing) return res.status(400).json({ message: "Already enrolled in this course" });
 
+    // Server-side validation of required extra details
+    const { phone, linkedIn, experience, motivation } = req.body;
+
+    if (!phone || !phone.trim()) {
+      return res.status(400).json({ message: "Phone number is required" });
+    }
+    if (!/^\+?[\d\s\-()]{7,20}$/.test(phone.trim())) {
+      return res.status(400).json({ message: "Please enter a valid phone number" });
+    }
+    if (!experience) {
+      return res.status(400).json({ message: "Professional experience level is required" });
+    }
+    const validExperience = ["0-1 years", "1-3 years", "3-5 years", "5+ years"];
+    if (!validExperience.includes(experience)) {
+      return res.status(400).json({ message: "Invalid experience level" });
+    }
+
     const enrollment = await Enrollment.create({
       student: req.user._id,
       course: req.params.courseId,
+      phone: phone.trim(),
+      linkedIn: linkedIn ? linkedIn.trim() : "",
+      experience,
+      motivation: motivation ? motivation.trim() : "",
     });
 
-    // Increment enrollment count
     await Course.findByIdAndUpdate(req.params.courseId, { $inc: { enrollmentCount: 1 } });
 
     res.status(201).json(enrollment);
@@ -82,18 +103,15 @@ export const markLessonComplete = async (req, res) => {
 
     const lessonId = req.params.lessonId;
 
-    // Add lesson if not already completed
     if (!enrollment.completedLessons.includes(lessonId)) {
       enrollment.completedLessons.push(lessonId);
     }
 
-    // Recalculate progress
     const totalLessons = course.lessons.length;
     enrollment.progress = totalLessons > 0
       ? Math.round((enrollment.completedLessons.length / totalLessons) * 100)
       : 0;
 
-    // Check if course is fully complete
     if (enrollment.progress === 100 && !enrollment.isCompleted) {
       enrollment.isCompleted = true;
       enrollment.completedAt = new Date();
@@ -120,6 +138,43 @@ export const unenrollCourse = async (req, res) => {
     await Course.findByIdAndUpdate(req.params.courseId, { $inc: { enrollmentCount: -1 } });
 
     res.json({ message: "Unenrolled successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get all enrollments with user + course details (admin aggregation)
+// @route   GET /api/enrollments/admin/all
+// @access  Private/Admin
+export const getAllEnrollments = async (req, res) => {
+  try {
+    const { courseId, search, page = 1, limit = 20 } = req.query;
+    const query = {};
+    if (courseId) query.course = courseId;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    let enrollments = await Enrollment.find(query)
+      .populate("student", "name email avatar role createdAt")
+      .populate("course", "title category level instructor enrollmentCount")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Apply search filter after population
+    if (search) {
+      const s = search.toLowerCase();
+      enrollments = enrollments.filter(
+        (e) =>
+          e.student?.name?.toLowerCase().includes(s) ||
+          e.student?.email?.toLowerCase().includes(s) ||
+          e.course?.title?.toLowerCase().includes(s)
+      );
+    }
+
+    const total = await Enrollment.countDocuments(query);
+
+    res.json({ enrollments, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
