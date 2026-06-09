@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -12,8 +13,6 @@ import courseRoutes from "./routes/courseRoutes.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import certificateRoutes from "./routes/certificateRoutes.js";
- 
-dotenv.config();
  
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
