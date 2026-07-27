@@ -1,5 +1,6 @@
+import React from "react";
 import { Link } from "react-router-dom";
-import { Users, BookOpen, Star } from "lucide-react";
+import { Users, BookOpen } from "lucide-react";
 
 const LEVEL_COLORS = {
   Beginner: "badge-green",
@@ -8,85 +9,115 @@ const LEVEL_COLORS = {
 };
 
 export default function CourseCard({ course }) {
+  const hasThumbnail = !!course.thumbnail;
+
   return (
-    <Link to={`/courses/${course._id}`} style={{ textDecoration: "none" }}>
-      <div style={{
-        background: "var(--bg-card)",
-        border: "1px solid var(--border)",
-        borderRadius: "var(--radius-lg)",
-        overflow: "hidden",
-        transition: "all 0.25s ease",
-        cursor: "pointer",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-      }}
-        onMouseEnter={e => {
-          e.currentTarget.style.borderColor = "var(--accent)";
-          e.currentTarget.style.transform = "translateY(-4px)";
-          e.currentTarget.style.boxShadow = "var(--shadow-accent)";
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.borderColor = "var(--border)";
-          e.currentTarget.style.transform = "none";
-          e.currentTarget.style.boxShadow = "none";
-        }}
-      >
+    <Link to={`/courses/${course._id}`} className="course-card-link">
+      <div className="card card-interactive course-card">
         {/* Thumbnail */}
-        <div style={{
-          height: 180,
-          background: course.thumbnail
-            ? `url(${course.thumbnail}) center/cover`
-            : `linear-gradient(135deg, #1a2236 0%, #0f1a2e 100%)`,
-          position: "relative",
-        }}>
-          {!course.thumbnail && (
+        <div className="course-card-thumbnail-wrapper">
+          {hasThumbnail ? (
+            <img
+              src={course.thumbnail}
+              alt={course.title}
+              className="course-card-thumbnail"
+              loading="lazy"
+            />
+          ) : (
             <div style={{
-              position: "absolute", inset: 0, display: "flex",
-              alignItems: "center", justifyContent: "center",
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "linear-gradient(135deg, var(--bg-secondary) 0%, rgba(20, 27, 54, 0.4) 100%)",
             }}>
-              <BookOpen size={48} color="var(--accent)" opacity={0.4} />
+              <BookOpen size={44} color="var(--accent)" style={{ opacity: 0.35 }} />
             </div>
           )}
-          <div style={{ position: "absolute", top: 12, left: 12 }}>
+          
+          {/* Tags */}
+          <div style={{ position: "absolute", top: 12, left: 12, zIndex: 1 }}>
             <span className={`badge ${LEVEL_COLORS[course.level] || "badge-gold"}`}>
               {course.level}
             </span>
           </div>
+
           {course.price > 0 && (
             <div style={{
-              position: "absolute", top: 12, right: 12,
-              background: "var(--accent)", color: "#0a0f1e",
-              fontWeight: 700, fontSize: 13, padding: "4px 10px",
-              borderRadius: 8,
+              position: "absolute",
+              top: 12,
+              right: 12,
+              background: "var(--accent)",
+              color: "#ffffff",
+              fontWeight: 800,
+              fontSize: "12px",
+              padding: "4px 10px",
+              borderRadius: "var(--radius-sm)",
+              boxShadow: "var(--shadow-sm)",
+              zIndex: 1,
             }}>
-              ${course.price}
+              ${course.price.toFixed(2)}
             </div>
           )}
         </div>
 
         {/* Content */}
-        <div style={{ padding: 20, flex: 1, display: "flex", flexDirection: "column" }}>
-          <p style={{ fontSize: 11, color: "var(--accent)", fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <div className="course-card-content">
+          <p style={{
+            fontSize: "11px",
+            color: "var(--accent)",
+            fontWeight: 700,
+            marginBottom: "8px",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+          }}>
             {course.category}
           </p>
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: "var(--text-primary)", lineHeight: 1.4 }}>
+          <h3 style={{
+            fontSize: "16px",
+            fontWeight: 700,
+            marginBottom: "8px",
+            color: "var(--text-primary)",
+            lineHeight: 1.4,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            height: "44px", /* fixed height to ensure perfect card alignment */
+          }}>
             {course.title}
           </h3>
-          <p style={{ fontSize: 13, color: "var(--text-secondary)", flex: 1, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+          <p style={{
+            fontSize: "13px",
+            color: "var(--text-secondary)",
+            flex: 1,
+            overflow: "hidden",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            lineHeight: 1.5,
+            marginBottom: "16px",
+          }}>
             {course.description}
           </p>
 
           <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginTop: "auto",
+            paddingTop: "16px",
+            borderTop: "1px solid var(--border)",
           }}>
-            <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-              by <span style={{ color: "var(--text-primary)" }}>{course.instructor?.name || "Instructor"}</span>
+            <span style={{ fontSize: "12px", color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70%" }}>
+              by <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>{course.instructor?.name || "Instructor"}</span>
             </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <Users size={13} color="var(--text-muted)" />
-              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{course.enrollmentCount || 0}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+              <Users size={14} color="var(--text-muted)" />
+              <span style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 500 }}>
+                {course.enrollmentCount || 0}
+              </span>
             </div>
           </div>
         </div>

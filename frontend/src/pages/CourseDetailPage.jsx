@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
 import toast from "react-hot-toast";
-import { BookOpen, Clock, Users, PlayCircle, CheckCircle, Lock, ArrowLeft } from "lucide-react";
+import { BookOpen, Clock, Users, PlayCircle, CheckCircle, Lock, ArrowLeft, ShieldCheck } from "lucide-react";
 
 export default function CourseDetailPage() {
   const { id } = useParams();
@@ -66,109 +66,234 @@ export default function CourseDetailPage() {
           <ArrowLeft size={16} /> Back to Courses
         </Link>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 48, alignItems: "start" }}>
-          {/* Left */}
-          <div>
-            <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-              <span className="badge badge-gold">{course.category}</span>
-              <span className="badge badge-blue">{course.level}</span>
-            </div>
-
-            <h1 style={{ fontSize: "clamp(24px, 4vw, 40px)", marginBottom: 16 }}>{course.title}</h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: 16, marginBottom: 24, lineHeight: 1.7 }}>
-              {course.description}
-            </p>
-
-            {/* Stats row */}
-            <div style={{ display: "flex", gap: 24, marginBottom: 32, flexWrap: "wrap" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Users size={16} color="var(--accent)" />
-                <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>{course.enrollmentCount} enrolled</span>
+        {/* Responsive Detail Grid */}
+        <div
+          className="grid-layout"
+          style={{
+            gridTemplateColumns: "1fr",
+            gap: 40,
+            alignItems: "start",
+          }}
+        >
+          {/* Custom style logic to handle 1024px grid layouts via inline style calculation */}
+          <div className="detail-grid-container">
+            {/* Left Content */}
+            <div style={{ order: 1 }}>
+              <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+                <span className="badge badge-gold">{course.category}</span>
+                <span className="badge badge-blue">{course.level}</span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <BookOpen size={16} color="var(--accent)" />
-                <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>{course.lessons?.length || 0} lessons</span>
-              </div>
-              {totalMinutes > 0 && (
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Clock size={16} color="var(--accent)" />
-                  <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>{Math.round(totalMinutes / 60)}h {totalMinutes % 60}m</span>
+
+              <h1 style={{
+                fontSize: "clamp(26px, 4vw, 42px)",
+                marginBottom: 20,
+                fontFamily: "var(--font-heading)",
+                fontWeight: 800,
+                lineHeight: 1.15
+              }}>
+                {course.title}
+              </h1>
+              
+              <p style={{
+                color: "var(--text-secondary)",
+                fontSize: "16px",
+                marginBottom: 32,
+                lineHeight: 1.7
+              }}>
+                {course.description}
+              </p>
+
+              {/* Stats Row */}
+              <div style={{
+                display: "flex",
+                gap: 20,
+                marginBottom: 36,
+                flexWrap: "wrap",
+                paddingBottom: 24,
+                borderBottom: "1px solid var(--border)",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--bg-secondary)", padding: "8px 14px", borderRadius: 8, border: "1px solid var(--border)" }}>
+                  <Users size={16} color="var(--accent)" />
+                  <span style={{ fontSize: "13px", color: "var(--text-primary)", fontWeight: 500 }}>{course.enrollmentCount} enrolled</span>
                 </div>
-              )}
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 40 }}>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--accent-dim)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
-                {course.instructor?.name?.[0]?.toUpperCase()}
-              </div>
-              <div>
-                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Instructor</p>
-                <p style={{ fontWeight: 600 }}>{course.instructor?.name}</p>
-              </div>
-            </div>
-
-            {/* Lessons */}
-            <h2 style={{ fontSize: 22, marginBottom: 16 }}>Course Curriculum</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {course.lessons?.length === 0 && (
-                <p style={{ color: "var(--text-muted)" }}>No lessons added yet.</p>
-              )}
-              {course.lessons?.map((lesson, i) => (
-                <div key={lesson._id} style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  padding: "14px 16px", background: "var(--bg-card)",
-                  border: "1px solid var(--border)", borderRadius: 10,
-                }}>
-                  {enrollment ? (
-                    <PlayCircle size={18} color="var(--accent)" />
-                  ) : (
-                    <Lock size={18} color="var(--text-muted)" />
-                  )}
-                  <span style={{ flex: 1, fontSize: 14 }}>{lesson.title}</span>
-                  {lesson.duration > 0 && (
-                    <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{lesson.duration}m</span>
-                  )}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--bg-secondary)", padding: "8px 14px", borderRadius: 8, border: "1px solid var(--border)" }}>
+                  <BookOpen size={16} color="var(--accent)" />
+                  <span style={{ fontSize: "13px", color: "var(--text-primary)", fontWeight: 500 }}>{course.lessons?.length || 0} lessons</span>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right - Enroll card */}
-          <div style={{ position: "sticky", top: 84 }}>
-            <div className="card">
-              {course.thumbnail && (
-                <img src={course.thumbnail} alt={course.title} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: 10, marginBottom: 20 }} />
-              )}
-              <div style={{ fontSize: 32, fontFamily: "Syne", fontWeight: 800, marginBottom: 20, color: "var(--accent)" }}>
-                {course.price > 0 ? `$${course.price}` : "Free"}
-              </div>
-
-              {enrollment ? (
-                <Link to={`/learn/${id}`} className="btn btn-primary" style={{ width: "100%", justifyContent: "center", padding: "14px" }}>
-                  <PlayCircle size={18} /> Continue Learning
-                </Link>
-              ) : (
-                <button
-                  onClick={handleEnroll}
-                  disabled={enrolling}
-                  className="btn btn-primary"
-                  style={{ width: "100%", justifyContent: "center", padding: "14px" }}
-                >
-                  {enrolling ? "Enrolling..." : "Enroll Now"}
-                </button>
-              )}
-
-              <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 10 }}>
-                {[
-                  `${course.lessons?.length || 0} lessons`,
-                  `Level: ${course.level}`,
-                  "Certificate on completion",
-                  "Lifetime access",
-                ].map((item, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--text-secondary)" }}>
-                    <CheckCircle size={14} color="var(--success)" /> {item}
+                {totalMinutes > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--bg-secondary)", padding: "8px 14px", borderRadius: 8, border: "1px solid var(--border)" }}>
+                    <Clock size={16} color="var(--accent)" />
+                    <span style={{ fontSize: "13px", color: "var(--text-primary)", fontWeight: 500 }}>{Math.round(totalMinutes / 60)}h {totalMinutes % 60}m</span>
                   </div>
-                ))}
+                )}
+              </div>
+
+              {/* Instructor Section */}
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 16,
+                marginBottom: 48,
+                background: "var(--bg-card)",
+                padding: "16px 20px",
+                borderRadius: "var(--radius-lg)",
+                border: "1px solid var(--border)",
+                maxWidth: "fit-content"
+              }}>
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: "50%",
+                  background: "var(--accent-dim)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "var(--accent)",
+                  fontWeight: 700,
+                  fontSize: 16,
+                  border: "2px solid var(--accent)"
+                }}>
+                  {course.instructor?.name?.[0]?.toUpperCase()}
+                </div>
+                <div>
+                  <p style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: 500 }}>Course Instructor</p>
+                  <p style={{ fontWeight: 700, fontSize: "15px" }}>{course.instructor?.name}</p>
+                </div>
+              </div>
+
+              {/* Curriculum */}
+              <h2 style={{ fontSize: "22px", marginBottom: 20, fontFamily: "var(--font-heading)", fontWeight: 700 }}>
+                Course Curriculum
+              </h2>
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, position: "relative" }}>
+                {course.lessons?.length === 0 ? (
+                  <p style={{ color: "var(--text-muted)", fontSize: "14px" }}>No lessons have been added yet.</p>
+                ) : (
+                  course.lessons?.map((lesson, i) => (
+                    <div
+                      key={lesson._id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 14,
+                        padding: "16px",
+                        background: "var(--bg-card)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "var(--radius)",
+                        transition: "var(--transition-fast)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = "var(--border-light)";
+                        e.currentTarget.style.backgroundColor = "var(--bg-hover)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = "var(--border)";
+                        e.currentTarget.style.backgroundColor = "var(--bg-card)";
+                      }}
+                    >
+                      <div style={{ flexShrink: 0 }}>
+                        {enrollment ? (
+                          <PlayCircle size={18} color="var(--accent)" />
+                        ) : (
+                          <Lock size={18} color="var(--text-muted)" />
+                        )}
+                      </div>
+                      <span style={{ flex: 1, fontSize: "14px", fontWeight: 500 }}>
+                        {i + 1}. {lesson.title}
+                      </span>
+                      {lesson.duration > 0 && (
+                        <span className="badge badge-gold" style={{ fontSize: "10px", flexShrink: 0 }}>
+                          {lesson.duration} mins
+                        </span>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Right Sticky Checkout Card */}
+            <div className="checkout-sidebar-card" style={{ order: 2 }}>
+              <div className="card" style={{
+                position: "sticky",
+                top: "100px",
+                boxShadow: "var(--shadow-lg)",
+                padding: "24px",
+                background: "linear-gradient(135deg, var(--bg-card) 0%, rgba(20, 27, 54, 0.4) 100%)",
+              }}>
+                {course.thumbnail && (
+                  <div style={{ width: "100%", height: 180, overflow: "hidden", borderRadius: 12, marginBottom: 20 }}>
+                    <img
+                      src={course.thumbnail}
+                      alt={course.title}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  </div>
+                )}
+                
+                <div style={{
+                  fontSize: "36px",
+                  fontFamily: "var(--font-heading)",
+                  fontWeight: 800,
+                  marginBottom: 20,
+                  color: "var(--accent)",
+                  display: "flex",
+                  alignItems: "baseline",
+                }}>
+                  {course.price > 0 ? (
+                    <>
+                      <span style={{ fontSize: "20px", marginRight: "2px" }}>$</span>
+                      {course.price.toFixed(2)}
+                    </>
+                  ) : (
+                    "Free"
+                  )}
+                </div>
+
+                {enrollment ? (
+                  <Link to={`/learn/${id}`} className="btn btn-primary" style={{ width: "100%", padding: "14px", fontSize: "15px" }}>
+                    <PlayCircle size={18} /> Continue Learning
+                  </Link>
+                ) : (
+                  <button
+                    onClick={handleEnroll}
+                    disabled={enrolling}
+                    className="btn btn-primary"
+                    style={{ width: "100%", padding: "14px", fontSize: "15px" }}
+                  >
+                    {enrolling ? "Enrolling..." : "Enroll Now"}
+                  </button>
+                )}
+
+                <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 12, paddingTop: 20, borderTop: "1px solid var(--border)" }}>
+                  {[
+                    `${course.lessons?.length || 0} expert lessons`,
+                    `Difficulty: ${course.level}`,
+                    "Certificate of completion",
+                    "Full lifetime access",
+                  ].map((item, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: "13px", color: "var(--text-secondary)" }}>
+                      <CheckCircle size={15} color="var(--success)" style={{ flexShrink: 0 }} />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginTop: 20,
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  backgroundColor: "rgba(16, 185, 129, 0.05)",
+                  border: "1px solid rgba(16, 185, 129, 0.15)",
+                  color: "var(--success)"
+                }}>
+                  <ShieldCheck size={16} />
+                  <span style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Secure Checkout</span>
+                </div>
               </div>
             </div>
           </div>
